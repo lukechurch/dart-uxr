@@ -1,0 +1,72 @@
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// This tool takes in an analysis server instrumentation log and prints to stdOut
+// a map of file -> time -> errors
+
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:errors_warnings_study/instrumentation_log_parser.dart';
+
+class FileData {
+  String name;
+  var errors = <int, Set<String>>{};
+
+  FileData(this.name);
+}
+
+var results = <String, FileData>{};
+
+main(List<String> args) {
+  String inputPath;
+  if (args.length != 1) {
+    print("usage: main.dart path");
+    exit(1);
+  }
+
+  inputPath = args[0];
+
+  int i = 0;
+  int errs = 0;
+
+  for (var ln in new File(inputPath).readAsLinesSync()) {
+    Map<String, dynamic> message = parseLogLine(ln);
+    if (message == null) {
+      errs++;
+      continue;
+    }
+    i++;
+
+    int time = message["time"];
+    Map data = message["data"];
+
+    // E.g. ~1473889108576:Noti:{"event"::"analysis.errors","params"::{"file"::"file_name.dart","errors"::[]}}
+
+    if (data["event" != "analysis.errors"]) continue;
+    String fileName = data["params"]["file"];
+    List errors = data["params"]["errors"];
+
+    results.putIfAbsent(fileName, () => new FileData(fileName));
+    var fileData = results[fileName];
+    fileData.errors.putIfAbsent(time, () => new Set());
+
+    fileData.errors[time].addAll(errors.map((e) => e["message"]));
+  }
+
+  results.forEach((k, FileData f) {
+    if (!f.errors.values.every((errSet) => errSet.isEmpty)) {
+      var jsonableErrors = <String, List<String>>{};
+
+      f.errors.forEach((k, v) {
+        jsonableErrors["$k"] = v.toList();
+      });
+
+      Map dataItem = {"name": f.name, "errors": jsonableErrors};
+      print(JSON.encode(dataItem));
+    }
+  });
+
+  stderr.writeln("Done $inputPath: $i Errs $errs");
+}
