@@ -9,13 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:errors_warnings_study/instrumentation_log_parser.dart';
-
-class FileData {
-  String name;
-  var errors = <int, Set<String>>{};
-
-  FileData(this.name);
-}
+import 'package:errors_warnings_study/errors_file_data.dart';
 
 var results = <String, FileData>{};
 
@@ -57,14 +51,7 @@ main(List<String> args) {
 
   results.forEach((k, FileData f) {
     if (!f.errors.values.every((errSet) => errSet.isEmpty)) {
-      var jsonableErrors = <String, List<String>>{};
-
-      f.errors.forEach((k, v) {
-        jsonableErrors["$k"] = v.toList();
-      });
-
-      Map dataItem = {"name": f.name, "errors": jsonableErrors};
-      print(JSON.encode(dataItem));
+      print(JSON.encode(f));
     }
   });
 
