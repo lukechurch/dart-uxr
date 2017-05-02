@@ -29,4 +29,5 @@ class FileData {
     map["errors"] = jsonableErrors;
     return map;
   }
+  String toString() => "$name: $errors"; 
 }

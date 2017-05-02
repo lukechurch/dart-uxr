@@ -8,7 +8,9 @@ Map<String, dynamic> parseLogLine(String logLine, [bool verboseDiagnostics = fal
   // E.g. ~1473889108576:Noti:{"event"::"analysis.errors","params"::{"file"::"file_name.dart","errors"::[]}}
 
   if (logLine[0] != "~") {
-    print ("Log line didn't start with ~");
+    if (verboseDiagnostics) {
+      print ("Log line didn't start with ~");
+    }
     return null;
   }
   try {
