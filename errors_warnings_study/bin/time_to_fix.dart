@@ -6,10 +6,11 @@
 // each error
 
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:errors_warnings_study/errors_file_data.dart';
 
-main(List<String> args) {
+main(List<String> args) async {
   String inputPath;
   if (args.length != 1) {
     print("usage: main.dart path");
@@ -22,7 +23,8 @@ main(List<String> args) {
   int notResolved = 0;
   int i = 0;
 
-  for (var ln in new File(inputPath).readAsLinesSync()) {
+
+  await new File(inputPath).openRead().transform(UTF8.decoder).transform(new LineSplitter()).forEach((ln) {
     var fileData = new FileData.fromJSON(ln);
     List<int> sortedTimings = fileData.errors.keys.toList()..sort();
 
@@ -54,7 +56,7 @@ main(List<String> args) {
         }
       }
     }
-  }
+  });
 
   stderr.writeln("Resolved: $resolved, Not resolved: $notResolved");
 }

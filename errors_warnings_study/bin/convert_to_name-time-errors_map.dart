@@ -13,7 +13,7 @@ import 'package:errors_warnings_study/errors_file_data.dart';
 
 var results = <String, FileData>{};
 
-main(List<String> args) {
+main(List<String> args) async {
   String inputPath;
   if (args.length != 1) {
     print("usage: main.dart path");
@@ -25,11 +25,13 @@ main(List<String> args) {
   int i = 0;
   int errs = 0;
 
-  for (var ln in new File(inputPath).readAsLinesSync()) {
+  await new File(inputPath).openRead().transform(UTF8.decoder).transform(new LineSplitter()).forEach((ln) {
+
+
     Map<String, dynamic> message = parseLogLine(ln);
     if (message == null) {
       errs++;
-      continue;
+      return;
     }
     i++;
 
@@ -38,7 +40,7 @@ main(List<String> args) {
 
     // E.g. ~1473889108576:Noti:{"event"::"analysis.errors","params"::{"file"::"file_name.dart","errors"::[]}}
 
-    if (data["event" != "analysis.errors"]) continue;
+    if (data["event" != "analysis.errors"]) return;
     String fileName = data["params"]["file"];
     List errors = data["params"]["errors"];
 
@@ -48,6 +50,10 @@ main(List<String> args) {
 
     fileData.errors[time].addAll(errors.map((e) => e["message"]));
   }
+
+  );
+
+
 
   results.forEach((k, FileData f) {
     if (!f.errors.values.every((errSet) => errSet.isEmpty)) {
