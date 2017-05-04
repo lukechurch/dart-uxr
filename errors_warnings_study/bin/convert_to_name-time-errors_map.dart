@@ -26,8 +26,6 @@ main(List<String> args) async {
   int errs = 0;
 
   await new File(inputPath).openRead().transform(UTF8.decoder).transform(new LineSplitter()).forEach((ln) {
-
-
     Map<String, dynamic> message = parseLogLine(ln);
     if (message == null) {
       errs++;
@@ -48,7 +46,9 @@ main(List<String> args) async {
     var fileData = results[fileName];
     fileData.errors.putIfAbsent(time, () => new Set());
 
-    fileData.errors[time].addAll(errors.map((e) => e["message"]));
+    fileData.errors[time].addAll(errors.map((Map e) {
+      return JSON.encode(new Map.from(e)..remove("location"));
+    } ));
   }
 
   );
