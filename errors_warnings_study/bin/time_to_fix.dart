@@ -22,6 +22,7 @@ main(List<String> args) async {
   int resolved = 0;
   int notResolved = 0;
   int i = 0;
+  const lookForwardWindow = 1000;
 
 
   await new File(inputPath).openRead().transform(UTF8.decoder).transform(new LineSplitter()).forEach((ln) {
@@ -35,19 +36,27 @@ main(List<String> args) async {
         int firstSeenTime = sortedTimings[i];
         int lastSeenTime = -1;
         int firstUnseenTime = -1;
+        bool assumedFixed = false;
 
         // Walk forwards until the error is no longer there, removing it as we go
         for (int j = i; j < sortedTimings.length; j++) {
           if (fileData.errors[sortedTimings[j]].contains(error)) {
             lastSeenTime = sortedTimings[j];
             fileData.errors[lastSeenTime].remove(error);
+            firstUnseenTime = -1;
           } else {
-            firstUnseenTime = sortedTimings[j];
-            break;
+            if (firstUnseenTime == -1) {
+              firstUnseenTime = sortedTimings[j];
+            }
+
+            if (sortedTimings[j] - firstUnseenTime > lookForwardWindow) {
+              assumedFixed = true;
+              break;
+            }
           }
         }
 
-        if (firstUnseenTime == -1) {
+        if (!assumedFixed) {
           notResolved++;
             print ("!Not resolved: $error $firstSeenTime");
         } else {
