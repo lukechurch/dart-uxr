@@ -1,0 +1,10 @@
+name: github_corpus_tools
+version: 0.0.1
+author: Luke Church <luke@church.name>
+description: Tools for working with the corups of Dart on Github
+
+environment:
+  sdk: '>=1.0.0 <2.0.0-dev.infinity'
+
+dependencies:
+  path: ^1.3.0
